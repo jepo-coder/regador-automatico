@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regador Automático | IrriSmart Automation</title>
+<meta name="description" content="Simulación educativa de un sistema automático de riego con sensor de humedad y Python.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* IrriSmart Automation - tema "naturaleza + tecnología": bosque nocturno, lima neón, agua y tierra. */
+:root{--noche:#0C1A10;--panel:#13291A;--olivo:#558B2F;--lima:#B7F34A;--agua:#38D5F5;--tierra:#4E342E;--texto:#EAF5DC;--suave:#B5C7A5;--radio:16px}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{font-family:"Nunito Sans",system-ui,sans-serif;color:var(--texto);background:var(--noche);line-height:1.65;padding-top:68px;overflow-x:hidden}
+h1,h2,h3{font-family:"Fraunces",Georgia,serif;line-height:1.2;color:#fff}
+h2{font-size:clamp(1.8rem,4.5vw,2.7rem);margin-bottom:.7rem}
+h3{font-size:1.2rem;margin-bottom:.4rem}
+a{color:var(--lima)}
+:focus-visible{outline:3px solid var(--agua);outline-offset:2px}
+.wrap{max-width:1080px;margin:auto;padding:0 20px;position:relative}
+.bloque{padding:64px 0}
+.gris{background:linear-gradient(180deg,var(--panel),var(--noche))}
+.intro{max-width:62ch;margin-bottom:1.6rem;color:var(--suave)}
+
+/* Navegación fija */
+.nav{position:fixed;inset:0 0 auto 0;height:68px;background:#0c1a10cc;backdrop-filter:blur(12px);border-bottom:1px solid #b7f34a33;z-index:10}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:100%}
+.logo{color:var(--lima);font-family:"Fraunces",serif;font-weight:700;font-size:1.2rem}
+.menu{display:flex;gap:6px;list-style:none;padding:0}
+.menu button{background:none;border:0;color:var(--texto);font:inherit;font-weight:700;padding:8px 15px;border-radius:99px;cursor:pointer;transition:background .2s,color .2s}
+.menu button:hover{background:#b7f34a26}
+.menu button[aria-current=page]{background:var(--lima);color:#12240a}
+
+/* Pestañas */
+.tab{display:none}
+.tab.activa{display:block;animation:entrada .4s ease}
+@keyframes entrada{from{opacity:0}to{opacity:1}}
+
+/* Revelado al hacer scroll (usa translate para no chocar con el efecto 3D) */
+.rev{opacity:0;translate:0 26px;transition:opacity .6s var(--d,0s),translate .6s var(--d,0s)}
+.rev.vis{opacity:1;translate:0 0}
+
+/* Botones */
+.btn,.chip{position:relative;overflow:hidden;border:2px solid transparent;border-radius:99px;font:inherit;font-weight:800;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.btn{padding:13px 28px}
+.btn:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 8px 24px #b7f34a55}
+.btn:disabled{opacity:.6;cursor:wait;transform:none}
+.btn-solido{background:var(--lima);color:#12240a}
+.btn-borde{background:transparent;border-color:var(--lima);color:var(--lima)}
+.btn-tierra{background:linear-gradient(135deg,var(--agua),#6EE7B7);color:#062a33}
+.onda{position:absolute;width:10px;height:10px;margin:-5px;border-radius:50%;background:#ffffff99;animation:onda .6s ease-out forwards;pointer-events:none}
+@keyframes onda{to{transform:scale(28);opacity:0}}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;background:radial-gradient(circle at 20% 20%,#1d3d1f,var(--noche) 70%);padding:80px 0}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.55;transition:translate .4s ease-out}
+.b1{width:380px;height:380px;background:var(--olivo);top:-100px;left:-80px}
+.b2{width:320px;height:320px;background:#0E7490;bottom:-100px;right:5%}
+#burbujas span{position:absolute;bottom:-30px;border-radius:50%;border:1px solid #38d5f588;background:#38d5f51f;animation:sube linear infinite}
+@keyframes sube{to{transform:translateY(-110vh)}}
+.hero .wrap{display:grid;grid-template-columns:1.2fr 1fr;gap:32px;align-items:center}
+.marca{font-weight:800;letter-spacing:.14em;color:var(--lima);margin-bottom:.6rem}
+.hero h1{font-size:clamp(2.2rem,5.5vw,3.8rem);margin-bottom:1rem}
+.hero p{max-width:52ch;margin-bottom:1.6rem;color:var(--suave)}
+.hero .btn+.btn{margin-left:8px}
+.escena{position:relative;background:#ffffff0f;border:1px solid #b7f34a44;border-radius:28px;padding:18px;cursor:pointer;box-shadow:0 0 60px #b7f34a22;overflow:hidden}
+.escena>svg{animation:flota 5s ease-in-out infinite}
+@keyframes flota{50%{transform:translateY(-8px)}}
+.hero .escena p.pista-click{margin:8px 0 0;text-align:center;font-size:.85rem;color:var(--suave)}
+.salpica{position:absolute;width:8px;height:12px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:var(--agua);pointer-events:none}
+
+/* Tarjetas: inclinación 3D + brillo que sigue al cursor */
+.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px}
+.tarjeta{background:radial-gradient(circle at var(--mx,50%) var(--my,0%),#b7f34a30,transparent 55%),#ffffff0d;border:1px solid #b7f34a2e;border-radius:var(--radio);padding:24px;transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .15s,box-shadow .3s,border-color .3s,opacity .6s var(--d,0s),translate .6s var(--d,0s)}
+.tarjeta:hover{border-color:var(--lima);box-shadow:0 14px 34px #00000066,0 0 24px #b7f34a33}
+.tarjeta .ico{font-size:2.4rem;display:inline-block;transition:transform .3s}
+.tarjeta:hover .ico{transform:scale(1.3) rotate(-8deg)}
+.tarjeta p{color:var(--suave)}
+.problema{background:#b7f34a14;border-left:6px solid var(--lima);border-radius:var(--radio);padding:24px;max-width:75ch;font-size:1.1rem}
+.valores{display:flex;flex-wrap:wrap;gap:10px;list-style:none;padding:0}
+.valores li{border:1px solid var(--lima);color:var(--lima);border-radius:99px;padding:8px 18px;font-weight:700;transition:background .2s,color .2s,transform .2s}
+.valores li:hover{background:var(--lima);color:#12240a;transform:translateY(-3px)}
+.equipo .tarjeta{text-align:center}
+.avatar{width:70px;height:70px;border-radius:50%;background:#b7f34a22;display:grid;place-items:center;font-size:2rem;margin:0 auto 10px}
+[contenteditable]{border-bottom:1px dashed #b7f34a88;outline-offset:3px}
+
+/* Pasos y tablas */
+.pasos{list-style:none;padding:0;display:grid;gap:12px;counter-reset:p}
+.pasos li{counter-increment:p;background:#ffffff0d;border:1px solid #b7f34a2e;border-radius:var(--radio);padding:15px 18px 15px 64px;position:relative;transition:transform .25s,border-color .25s}
+.pasos li:hover{transform:translateX(8px);border-color:var(--lima)}
+.pasos li::before{content:counter(p);position:absolute;left:16px;top:12px;width:34px;height:34px;border-radius:50%;background:var(--lima);color:#12240a;display:grid;place-items:center;font-weight:800}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;background:#ffffff0a;border-radius:var(--radio);overflow:hidden}
+th{background:var(--olivo);color:#fff;text-align:left}
+th,td{padding:12px 16px;border-bottom:1px solid #b7f34a22}
+tbody tr{transition:background .2s}
+tbody tr:hover{background:#b7f34a1a}
+td input{font:inherit;color:var(--texto);border:1px solid #b7f34a55;border-radius:8px;padding:4px 8px;background:#0c1a10}
+
+/* Dashboard */
+.aviso{background:#ffd66622;border:1px solid #ffd66688;border-radius:var(--radio);padding:14px 18px;margin:1rem 0 1.6rem}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.panel{background:#ffffff0d;border:1px solid #b7f34a33;border-radius:var(--radio);padding:22px}
+.dato{font-size:1.1rem;margin-bottom:6px;color:var(--suave)}
+.dato strong{font-size:1.8rem;font-family:"Fraunces",serif;color:#fff}
+.estado{display:inline-block;margin:10px 0 14px;padding:9px 20px;border-radius:99px;font-weight:800;color:#fff}
+.estado.on{background:#2E7D32;animation:pulso 1.2s infinite}
+.estado.off{background:#B71C1C}
+@keyframes pulso{0%{box-shadow:0 0 0 0 #4ade8099}100%{box-shadow:0 0 0 16px #4ade8000}}
+.medidores{display:flex;gap:14px;align-items:center;margin-bottom:10px}
+.gauge{width:110px;flex:none}
+.gauge .pista{fill:none;stroke:#ffffff22;stroke-width:10}
+.gauge .anillo{fill:none;stroke:var(--agua);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .4s,stroke .3s}
+.gauge .anillo.seco{stroke:#FB923C}
+.gauge #marcaUmbral{stroke:var(--lima);stroke-width:4;stroke-linecap:round;transform-origin:60px 60px}
+.gauge text{fill:#fff;font:700 24px "Fraunces",serif}
+.historia{flex:1;min-width:0}.historia small{color:var(--suave);font-size:.75rem}
+.historia svg{width:100%;height:56px;background:#0c1a10;border-radius:8px}
+#lineaHist{fill:none;stroke:var(--agua);stroke-width:2;vector-effect:non-scaling-stroke}
+#lineaUmbral{stroke:var(--lima);stroke-width:1.5;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.chip{background:#ffffff14;border:1px solid #b7f34a55;color:var(--texto);padding:7px 14px}
+.chip:hover{background:var(--lima);color:#12240a;transform:translateY(-2px)}
+label{display:block;font-weight:700;margin-top:12px}
+input[type=range]{width:100%;accent-color:var(--lima)}
+.reglaTxt{font-family:ui-monospace,Consolas,monospace;background:#0c1a10;padding:10px;border-radius:10px;margin-top:14px;font-size:.9rem;color:var(--lima)}
+.simbox{background:radial-gradient(circle at 50% 30%,#164e3a,#0c1a10);display:flex;justify-content:center;align-items:center}
+.simbox svg{width:100%;max-width:320px}
+#plantaSim{transform-origin:100px 230px;transition:transform .6s}
+.hoja{transform-box:fill-box;transform-origin:bottom center;transition:transform .8s,fill .8s}
+.seca .hoja{fill:#A1887F}
+.seca .hoja.izq{transform:rotate(-22deg)}
+.seca .hoja.der{transform:rotate(22deg)}
+.gota{fill:#38D5F5;opacity:0}
+.flujo .gota{animation:caer 1s infinite}
+.flujo .gota:nth-of-type(2){animation-delay:.33s}
+.flujo .gota:nth-of-type(3){animation-delay:.66s}
+.hero .gota{animation:caer 1.4s infinite}
+@keyframes caer{0%{transform:translateY(0);opacity:1}100%{transform:translateY(70px);opacity:0}}
+.tubo{fill:#8D6E63}.agua{stroke:#38D5F5;stroke-width:4;opacity:0;transition:opacity .3s}
+.flujo .agua{opacity:1}
+
+/* Código */
+pre{background:#07110a;border:1px solid #b7f34a33;color:#f1e9e2;padding:18px;border-radius:var(--radio);overflow-x:auto;font-size:.85rem;line-height:1.5}
+.kw{color:var(--lima)}.cm{color:#7f9a86}
+
+/* FAQ y formulario */
+details{background:#ffffff0d;border:1px solid #b7f34a2e;border-radius:var(--radio);padding:14px 18px;margin-bottom:10px;transition:border-color .2s}
+details[open]{border-color:var(--lima)}
+summary{cursor:pointer;font-weight:700}
+details p{margin-top:8px;color:var(--suave)}
+form{display:grid;gap:4px;max-width:520px}
+form input,form textarea{font:inherit;color:var(--texto);padding:11px;border:1px solid #b7f34a55;border-radius:10px;width:100%;background:#0c1a10}
+form input:focus,form textarea:focus{border-color:var(--lima);box-shadow:0 0 0 3px #b7f34a33;outline:0}
+form .btn{margin-top:14px;justify-self:start}
+#msgForm{margin-top:10px;font-weight:700;color:var(--lima)}
+.gracias{background:linear-gradient(135deg,var(--lima),var(--agua));color:#0c1a10;text-align:center;padding:48px 20px}
+.gracias h2{color:#0c1a10}
+footer{background:#07110a;color:var(--suave);text-align:center;padding:16px;font-size:.9rem}
+
+@media(max-width:800px){
+ .hero .wrap,.dash{grid-template-columns:1fr}
+ .logo{display:none}.nav .wrap{justify-content:center}.menu{gap:2px}.menu button{padding:6px 7px;font-size:.72rem}
+ body{padding-top:64px}.nav{height:64px}
+ .medidores{flex-direction:column;align-items:stretch}.gauge{margin:auto}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+</style>
+</head>
+<body>
+
+<!-- Símbolo SVG de la planta, reutilizado en el inicio y en el dashboard -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <symbol id="planta" viewBox="0 0 200 240">
+  <path d="M60 170h80l-10 60H70z" fill="#4E342E"/><rect x="55" y="162" width="90" height="14" rx="4" fill="#6D4C41"/>
+  <path d="M100 165V80" stroke="#558B2F" stroke-width="6" stroke-linecap="round"/>
+  <path class="hoja izq" d="M100 120C60 120 40 90 38 62c36 0 62 22 62 58z" fill="#7CB342"/>
+  <path class="hoja der" d="M100 100c40 0 60-30 62-58-36 0-62 22-62 58z" fill="#558B2F"/>
+  <path class="hoja" d="M100 82c-18-8-22-30-14-48 18 8 22 30 14 48z" fill="#8BC34A"/>
+ </symbol>
+</svg>
+
+<header class="nav">
+ <div class="wrap">
+  <span class="logo">🌱 IrriSmart</span>
+  <ul class="menu" role="tablist">
+   <li><button data-tab="inicio">Inicio</button></li>
+   <li><button data-tab="filosofia">Filosofía</button></li>
+   <li><button data-tab="soluciones">Soluciones &amp; Python</button></li>
+   <li><button data-tab="contacto">Contacto</button></li>
+  </ul>
+ </div>
+</header>
+
+<main>
+<!-- ============ 1. INICIO ============ -->
+<section id="inicio" class="tab">
+ <div class="hero"><span class="blob b1"></span><span class="blob b2"></span><div id="burbujas"></div><div class="wrap">
+  <div>
+   <p class="marca">IRRISMART AUTOMATION</p>
+   <h1>Riego inteligente para un futuro más sostenible</h1>
+   <p>Sistema automático de riego que utiliza la humedad del suelo para determinar cuándo una planta necesita agua.</p>
+   <button class="btn btn-solido" data-goto="soluciones" data-scroll="simulacion">Ver simulación</button>
+   <button class="btn btn-borde" data-goto="filosofia">Conocer el proyecto</button>
+  </div>
+  <div class="escena" id="escenaHero" title="Haz clic para hacer llover">
+   <svg viewBox="0 0 200 240" role="img" aria-label="Planta con gotas de agua">
+    <rect x="20" y="8" width="160" height="10" rx="5" fill="#8D6E63"/>
+    <circle class="gota" cx="70" cy="30" r="5"/><circle class="gota" cx="100" cy="30" r="5" style="animation-delay:.5s"/><circle class="gota" cx="130" cy="30" r="5" style="animation-delay:.9s"/>
+    <use href="#planta" y="10"/>
+   </svg>
+   <p class="pista-click">👆 Toca la escena para hacer llover</p>
+  </div>
+ </div></div>
+
+ <div class="bloque"><div class="wrap">
+  <div class="rejilla">
+   <article class="tarjeta"><div class="ico">💧</div><h3>Ahorro de agua</h3><p>Riega solo cuando el suelo lo necesita.</p></article>
+   <article class="tarjeta"><div class="ico">🌱</div><h3>Cuidado de plantas</h3><p>Evita el exceso y la falta de agua.</p></article>
+   <article class="tarjeta"><div class="ico">⚙️</div><h3>Automatización</h3><p>Sensores y programación toman la decisión.</p></article>
+  </div>
+ </div></div>
+
+ <div class="bloque gris"><div class="wrap">
+  <h2>El problema</h2>
+  <p class="problema">El riego manual puede provocar exceso o falta de agua. IrriSmart Automation busca automatizar este proceso utilizando sensores y programación.</p>
+ </div></div>
+</section>
+
+<!-- ============ 2. FILOSOFÍA ============ -->
+<section id="filosofia" class="tab">
+ <div class="bloque"><div class="wrap">
+  <h2>Quiénes somos</h2>
+  <div class="rejilla">
+   <article class="tarjeta"><h3>🎯 Misión</h3><p>Desarrollar soluciones tecnológicas que permitan automatizar el riego de plantas, promoviendo un uso más eficiente del agua y el cuidado responsable de los recursos naturales.</p></article>
+   <article class="tarjeta"><h3>🔭 Visión</h3><p>Ser un proyecto educativo que demuestre cómo la tecnología y la programación pueden utilizarse para crear soluciones sostenibles para la agricultura y el hogar.</p></article>
+  </div>
+  <h3 style="margin-top:2rem">Valores</h3>
+  <ul class="valores"><li>Innovación</li><li>Responsabilidad</li><li>Sostenibilidad</li><li>Trabajo en equipo</li><li>Conciencia ambiental</li></ul>
+ </div></div>
+
+ <div class="bloque gris"><div class="wrap">
+  <h2>Impacto sociocultural</h2>
+  <p class="intro">Un sistema de riego automático puede aportar a la comunidad de varias maneras:</p>
+  <div class="rejilla">
+   <article class="tarjeta"><h3>Menos desperdicio</h3><p>Al regar solo cuando la humedad es baja, se evita gastar agua de más.</p></article>
+   <article class="tarjeta"><h3>Cuidado más fácil</h3><p>Ayuda a mantener las plantas aunque no se pueda regar todos los días.</p></article>
+   <article class="tarjeta"><h3>Automatización agrícola</h3><p>Introduce a estudiantes en ideas que también se usan en la agricultura.</p></article>
+   <article class="tarjeta"><h3>Tecnología cotidiana</h3><p>Muestra cómo la programación puede resolver problemas del día a día.</p></article>
+  </div>
+ </div></div>
+
+ <div class="bloque"><div class="wrap equipo">
+  <h2>Nuestro equipo</h2>
+  <p class="intro">Haz clic sobre un nombre o rol para editarlo.</p>
+  <div class="rejilla">
+   <article class="tarjeta"><div class="avatar">👩‍🔬</div><h3 contenteditable="true">Nombre Integrante 1</h3><p contenteditable="true">Rol: Programación</p></article>
+   <article class="tarjeta"><div class="avatar">👨‍💻</div><h3 contenteditable="true">Nombre Integrante 2</h3><p contenteditable="true">Rol: Electrónica</p></article>
+   <article class="tarjeta"><div class="avatar">🧑‍🌾</div><h3 contenteditable="true">Nombre Integrante 3</h3><p contenteditable="true">Rol: Investigación</p></article>
+   <article class="tarjeta"><div class="avatar">🧑‍🎨</div><h3 contenteditable="true">Nombre Integrante 4</h3><p contenteditable="true">Rol: Diseño</p></article>
+  </div>
+ </div></div>
+</section>
+
+<!-- ============ 3. SOLUCIONES & PYTHON ============ -->
+<section id="soluciones" class="tab">
+ <div class="bloque"><div class="wrap">
+  <h2>Cómo funciona</h2>
+  <ol class="pasos">
+   <li>El <b>sensor de humedad</b> mide la humedad del suelo.</li>
+   <li><b>Python</b> recibe y procesa el valor.</li>
+   <li>El sistema compara la humedad con un <b>nivel mínimo</b> (umbral).</li>
+   <li>Si la humedad es demasiado baja, se <b>activa el riego</b>.</li>
+   <li>Si la humedad es suficiente, la bomba <b>permanece apagada</b>.</li>
+  </ol>
+  <h3 style="margin:2rem 0 .8rem">Componentes</h3>
+  <ul class="valores"><li>Sensor de humedad</li><li>Bomba de agua</li><li>Electroválvula</li><li>Depósito de agua</li><li>Manguera/gotero</li><li>Controlador</li><li>Planta</li></ul>
+  <div class="scroll" style="margin-top:1.4rem"><table>
+   <thead><tr><th>COMPONENTE</th><th>FUNCIÓN</th></tr></thead>
+   <tbody>
+    <tr><td>Sensor de humedad</td><td>Detecta la humedad del suelo.</td></tr>
+    <tr><td>Bomba de agua</td><td>Transporta el agua hacia la planta.</td></tr>
+    <tr><td>Electroválvula</td><td>Controla el paso del agua.</td></tr>
+    <tr><td>Programador</td><td>Define cuándo debe funcionar el sistema.</td></tr>
+    <tr><td>Controlador</td><td>Procesa los datos y controla el sistema.</td></tr>
+   </tbody></table></div>
+ </div></div>
+
+ <div class="bloque gris" id="simulacion"><div class="wrap">
+  <h2>Dashboard interactivo</h2>
+  <div class="aviso"><b>Esto es una simulación web.</b> Los valores los mueves tú con los controles; no provienen de un sensor real. El <b>prototipo físico</b> es un montaje aparte con componentes electrónicos.</div>
+  <div class="dash">
+   <div class="panel">
+    <p class="dato">Humedad del suelo: <strong id="valHumedad">45 %</strong></p>
+    <p class="dato">Umbral de riego: <strong id="valUmbral">40 %</strong></p>
+    <span id="estado" class="estado off" role="status">🔴 RIEGO DESACTIVADO</span>
+    <div class="medidores">
+     <svg class="gauge" viewBox="0 0 120 120" role="img" aria-label="Medidor de humedad">
+      <circle class="pista" cx="60" cy="60" r="50"/>
+      <circle id="anillo" class="anillo" cx="60" cy="60" r="50" transform="rotate(-90 60 60)" stroke-dasharray="314.16"/>
+      <line id="marcaUmbral" x1="60" y1="2" x2="60" y2="18"/>
+      <text id="gaugeTxt" x="60" y="68" text-anchor="middle">45%</text>
+     </svg>
+     <div class="historia"><small>Historial de humedad (línea punteada = umbral)</small>
+      <svg viewBox="0 0 200 50" preserveAspectRatio="none" aria-hidden="true"><line id="lineaUmbral" x1="0" x2="200"/><polyline id="lineaHist" points=""/></svg>
+     </div>
+    </div>
+    <div class="presets"><button class="chip" data-h="10">🏜️ Sequía</button><button class="chip" data-h="50">🌤️ Normal</button><button class="chip" data-h="90">🌧️ Lluvia</button></div>
+    <label for="humedad">Humedad del suelo</label>
+    <input type="range" id="humedad" min="0" max="100" value="45">
+    <label for="umbral">Umbral de riego</label>
+    <input type="range" id="umbral" min="0" max="100" value="40">
+    <p class="reglaTxt">SI humedad &lt; umbral → activar riego<br>SI humedad &gt;= umbral → desactivar riego</p>
+    <p style="margin-top:14px"><button class="btn btn-tierra" id="btnSimular">Simular riego</button></p>
+   </div>
+   <div class="panel simbox">
+    <svg id="escenaSim" viewBox="0 0 200 240" role="img" aria-label="Planta y flujo de agua simulado">
+     <rect class="tubo" x="20" y="6" width="100" height="10" rx="5"/><rect class="tubo" x="112" y="6" width="10" height="20" rx="4"/>
+     <line class="agua" x1="117" y1="26" x2="117" y2="100"/>
+     <circle class="gota" cx="117" cy="30" r="5"/><circle class="gota" cx="117" cy="30" r="5"/><circle class="gota" cx="117" cy="30" r="5"/>
+     <g id="plantaSim"><use href="#planta" y="10"/></g>
+    </svg>
+   </div>
+  </div>
+
+  <h3 style="margin:2rem 0 .8rem">Programación horaria (editable)</h3>
+  <div class="scroll"><table>
+   <thead><tr><th>Hora</th><th>Estado</th></tr></thead>
+   <tbody id="horarios">
+    <tr><td><input type="time" value="07:00" aria-label="Hora 1"></td><td><input type="text" value="Riego" aria-label="Estado 1"></td></tr>
+    <tr><td><input type="time" value="12:00" aria-label="Hora 2"></td><td><input type="text" value="Revisión" aria-label="Estado 2"></td></tr>
+    <tr><td><input type="time" value="18:00" aria-label="Hora 3"></td><td><input type="text" value="Riego" aria-label="Estado 3"></td></tr>
+   </tbody></table></div>
+ </div></div>
+
+ <div class="bloque"><div class="wrap">
+  <h2>Código Python</h2>
+  <p class="intro">Programación orientada a objetos: cada parte del sistema es una clase. La versión completa (con Flask) está en <code>app.py</code>.</p>
+<pre><code><span class="kw">class</span> SensorHumedad:
+    <span class="cm">"""Simula el sensor: devuelve la humedad (0-100 %)."""</span>
+    <span class="kw">def</span> __init__(self, humedad_inicial=50):
+        self.humedad = humedad_inicial
+    <span class="kw">def</span> leer(self):
+        <span class="kw">return</span> self.humedad
+
+<span class="kw">class</span> ElectroValvula:
+    <span class="cm">"""Deja pasar o corta el agua."""</span>
+    <span class="kw">def</span> __init__(self):
+        self.abierta = False
+    <span class="kw">def</span> abrir(self):  self.abierta = True
+    <span class="kw">def</span> cerrar(self): self.abierta = False
+
+<span class="kw">class</span> ProgramadorHorario:
+    <span class="cm">"""Guarda las horas y la acción de cada una."""</span>
+    <span class="kw">def</span> __init__(self):
+        self.horarios = {"07:00": "Riego", "12:00": "Revision", "18:00": "Riego"}
+    <span class="kw">def</span> accion_a(self, hora):
+        <span class="kw">return</span> self.horarios.get(hora, "Sin accion")
+
+<span class="kw">class</span> SistemaRiego:
+    <span class="cm">"""Controlador: compara humedad y umbral y decide."""</span>
+    <span class="kw">def</span> __init__(self, sensor, valvula, programador, umbral=40):
+        self.sensor, self.valvula = sensor, valvula
+        self.programador, self.umbral = programador, umbral
+    <span class="kw">def</span> evaluar(self):
+        humedad = self.sensor.leer()
+        <span class="kw">if</span> humedad &lt; self.umbral:   <span class="cm"># suelo seco</span>
+            self.valvula.abrir()
+        <span class="kw">else</span>:                       <span class="cm"># humedad suficiente</span>
+            self.valvula.cerrar()
+        <span class="kw">return</span> {"humedad": humedad, "umbral": self.umbral,
+                "riego_activo": self.valvula.abierta}</code></pre>
+  <div class="rejilla" style="margin-top:1.4rem">
+   <article class="tarjeta"><h3>SensorHumedad</h3><p>Entrega el valor de humedad. Aquí es simulado.</p></article>
+   <article class="tarjeta"><h3>ElectroValvula</h3><p>Guarda si el agua puede pasar (abierta) o no (cerrada).</p></article>
+   <article class="tarjeta"><h3>ProgramadorHorario</h3><p>Define las horas de riego y revisión.</p></article>
+   <article class="tarjeta"><h3>SistemaRiego</h3><p>Es el controlador: aplica la regla humedad &lt; umbral.</p></article>
+  </div>
+ </div></div>
+</section>
+
+<!-- ============ 4. CONTACTO ============ -->
+<section id="contacto" class="tab">
+ <div class="bloque"><div class="wrap">
+  <h2>Contacto</h2>
+  <form id="formContacto">
+   <label for="nombre">Nombre</label><input id="nombre" name="nombre" required>
+   <label for="correo">Correo</label><input id="correo" name="correo" type="email" required>
+   <label for="mensaje">Mensaje</label><textarea id="mensaje" name="mensaje" rows="4" required></textarea>
+   <button class="btn btn-solido" type="submit">Enviar mensaje</button>
+   <p id="msgForm" role="status"></p>
+  </form>
+ </div></div>
+
+ <div class="bloque gris"><div class="wrap">
+  <h2>Preguntas frecuentes</h2>
+  <details><summary>¿Qué problema busca resolver IrriSmart?</summary><p>El riego manual puede dar demasiada o muy poca agua. IrriSmart automatiza la decisión usando un sensor y programación.</p></details>
+  <details><summary>¿Cómo detecta cuándo una planta necesita agua?</summary><p>Mide la humedad del suelo y la compara con un umbral mínimo. Si está por debajo, indica que hay que regar.</p></details>
+  <details><summary>¿Qué función cumple el sensor?</summary><p>Detecta la humedad del suelo y entrega ese dato al controlador.</p></details>
+  <details><summary>¿Qué hace Python?</summary><p>Procesa el valor del sensor, aplica la regla de comparación y decide si abrir o cerrar la electroválvula.</p></details>
+  <details><summary>¿Cómo ayuda a ahorrar agua?</summary><p>Al regar solo cuando el suelo está seco, evita riegos innecesarios. La página lo muestra como simulación; no presenta mediciones reales de ahorro.</p></details>
+ </div></div>
+
+ <div class="gracias"><h2>Gracias por visitar nuestro proyecto de Feria Científica.</h2></div>
+</section>
+</main>
+
+<footer>IrriSmart Automation · Proyecto educativo · Simulación web</footer>
+<script>
+// IrriSmart Automation - lógica de la página (funciona sin Flask).
+
+// ---------- Navegación entre las 4 pestañas ----------
+const pestanas = document.querySelectorAll(".tab");
+const botonesMenu = document.querySelectorAll(".menu button");
+
+function mostrarPestana(id, destino) {
+  if (!document.getElementById(id)) id = "inicio";
+  pestanas.forEach(p => p.classList.toggle("activa", p.id === id));
+  botonesMenu.forEach(b => b.toggleAttribute("aria-current", b.dataset.tab === id));
+  botonesMenu.forEach(b => { if (b.dataset.tab === id) b.setAttribute("aria-current", "page"); });
+  history.replaceState(null, "", "#" + id);
+  const meta = destino ? document.getElementById(destino) : null;
+  meta ? meta.scrollIntoView({ behavior: "smooth" }) : window.scrollTo(0, 0);
+}
+botonesMenu.forEach(b => b.addEventListener("click", () => mostrarPestana(b.dataset.tab)));
+document.querySelectorAll("[data-goto]").forEach(b =>
+  b.addEventListener("click", () => mostrarPestana(b.dataset.goto, b.dataset.scroll)));
+window.addEventListener("hashchange", () => mostrarPestana(location.hash.slice(1)));
+mostrarPestana(location.hash.slice(1) || "inicio");
+
+// ---------- Dashboard: regla humedad < umbral ----------
+const sliderHumedad = document.getElementById("humedad");
+const sliderUmbral = document.getElementById("umbral");
+const escena = document.getElementById("escenaSim");
+const etiquetaEstado = document.getElementById("estado");
+
+function actualizarDashboard() {
+  const humedad = Number(sliderHumedad.value);
+  const umbral = Number(sliderUmbral.value);
+  const riegoActivo = humedad < umbral;           // regla principal
+
+  document.getElementById("valHumedad").textContent = humedad + " %";
+  document.getElementById("valUmbral").textContent = umbral + " %";
+  etiquetaEstado.textContent = riegoActivo ? "🟢 RIEGO ACTIVO" : "🔴 RIEGO DESACTIVADO";
+  etiquetaEstado.className = "estado " + (riegoActivo ? "on" : "off");
+  escena.classList.toggle("flujo", riegoActivo);   // anima el agua
+  escena.classList.toggle("seca", humedad < umbral); // planta marchita si está seca
+  extras(humedad, umbral);
+}
+sliderHumedad.addEventListener("input", actualizarDashboard);
+sliderUmbral.addEventListener("input", actualizarDashboard);
+
+// ---------- Botón "Simular riego" ----------
+// Deja el suelo seco y sube la humedad poco a poco mientras el riego está activo.
+const botonSimular = document.getElementById("btnSimular");
+let temporizador = null;
+
+botonSimular.addEventListener("click", () => {
+  clearInterval(temporizador);
+  const umbral = Number(sliderUmbral.value);
+  sliderHumedad.value = Math.max(0, umbral - 20);
+  actualizarDashboard();
+  botonSimular.disabled = true;
+  botonSimular.textContent = "Simulando…";
+
+  temporizador = setInterval(() => {
+    if (Number(sliderHumedad.value) < Number(sliderUmbral.value)) {
+      sliderHumedad.value = Number(sliderHumedad.value) + 1;
+    } else {
+      clearInterval(temporizador);              // humedad suficiente: fin
+      botonSimular.disabled = false;
+      botonSimular.textContent = "Simular riego";
+    }
+    actualizarDashboard();
+  }, 150);
+});
+
+// ---------- Formulario de contacto ----------
+// Con Flask local se envía a /api/contacto; en GitHub Pages no hay servidor.
+document.getElementById("formContacto").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const mensaje = document.getElementById("msgForm");
+  const datos = Object.fromEntries(new FormData(e.target));
+  try {
+    const respuesta = await fetch("/api/contacto", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(datos),
+    });
+    if (!respuesta.ok) throw new Error("Error del servidor");
+    mensaje.textContent = "¡Gracias! Tu mensaje fue recibido por el servidor local.";
+  } catch {
+    mensaje.textContent = "Gracias, " + datos.nombre + ". Esta versión es una demostración: el mensaje no se envía a ningún servidor.";
+  }
+  e.target.reset();
+});
+
+// ---------- Extras visuales: medidor, planta que crece e historial ----------
+const CIRCUNFERENCIA = 2 * Math.PI * 50;
+const historial = [];
+
+function extras(humedad, umbral) {
+  const anillo = document.getElementById("anillo");
+  anillo.style.strokeDashoffset = CIRCUNFERENCIA * (1 - humedad / 100);
+  anillo.classList.toggle("seco", humedad < umbral);
+  document.getElementById("gaugeTxt").textContent = humedad + "%";
+  document.getElementById("marcaUmbral").setAttribute("transform", "rotate(" + umbral * 3.6 + " 60 60)");
+  // La planta crece un poco cuando hay más humedad
+  document.getElementById("plantaSim").style.transform = "scale(" + (0.72 + humedad / 100 * 0.36) + ")";
+  historial.push(humedad);
+  if (historial.length > 40) historial.shift();
+  const puntos = historial.map((v, i) => (i * 200 / 39).toFixed(1) + "," + (48 - v * 0.46).toFixed(1));
+  document.getElementById("lineaHist").setAttribute("points", puntos.join(" "));
+  const y = (48 - umbral * 0.46).toFixed(1);
+  const lu = document.getElementById("lineaUmbral");
+  lu.setAttribute("y1", y); lu.setAttribute("y2", y);
+}
+
+// Botones rápidos: sequía, normal, lluvia
+document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+  clearInterval(temporizador);
+  botonSimular.disabled = false; botonSimular.textContent = "Simular riego";
+  sliderHumedad.value = c.dataset.h;
+  actualizarDashboard();
+}));
+
+// ---------- Efectos: aparición, tarjetas 3D, ondas en botones ----------
+const observador = new IntersectionObserver(entradas => entradas.forEach(e => {
+  if (e.isIntersecting) { e.target.classList.add("vis"); observador.unobserve(e.target); }
+}), { threshold: 0.12 });
+document.querySelectorAll("h2, .tarjeta, .panel, .pasos li, details, .valores, .problema, .scroll, pre")
+  .forEach((el, i) => { el.classList.add("rev"); el.style.setProperty("--d", (i % 4) * 0.08 + "s"); observador.observe(el); });
+
+document.querySelectorAll(".tarjeta").forEach(t => {
+  t.addEventListener("pointermove", e => {
+    const r = t.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    t.style.setProperty("--mx", x * 100 + "%"); t.style.setProperty("--my", y * 100 + "%");
+    t.style.setProperty("--ry", (x - 0.5) * 12 + "deg"); t.style.setProperty("--rx", (0.5 - y) * 12 + "deg");
+  });
+  t.addEventListener("pointerleave", () => { t.style.setProperty("--rx", "0deg"); t.style.setProperty("--ry", "0deg"); });
+});
+
+document.querySelectorAll(".btn, .chip").forEach(b => b.addEventListener("click", e => {
+  const r = b.getBoundingClientRect(), onda = document.createElement("span");
+  onda.className = "onda";
+  onda.style.left = e.clientX - r.left + "px"; onda.style.top = e.clientY - r.top + "px";
+  b.appendChild(onda); setTimeout(() => onda.remove(), 600);
+}));
+
+// ---------- Hero: burbujas de fondo y lluvia al hacer clic ----------
+const contenedorBurbujas = document.getElementById("burbujas");
+for (let i = 0; i < 16; i++) {
+  const b = document.createElement("span");
+  const tam = 6 + Math.random() * 16;
+  b.style.cssText = "left:" + Math.random() * 100 + "%;width:" + tam + "px;height:" + tam + "px;animation-duration:" + (7 + Math.random() * 9) + "s;animation-delay:-" + Math.random() * 12 + "s";
+  contenedorBurbujas.appendChild(b);
+}
+
+const escenaHero = document.getElementById("escenaHero");
+escenaHero.addEventListener("click", e => {
+  const r = escenaHero.getBoundingClientRect();
+  for (let i = 0; i < 14; i++) {
+    const g = document.createElement("span");
+    g.className = "salpica";
+    g.style.left = e.clientX - r.left + "px"; g.style.top = e.clientY - r.top + "px";
+    escenaHero.appendChild(g);
+    g.animate([{ transform: "translate(0,0)", opacity: 1 },
+               { transform: "translate(" + (Math.random() * 120 - 60) + "px," + (40 + Math.random() * 90) + "px)", opacity: 0 }],
+              { duration: 700 + Math.random() * 400, easing: "ease-out" }).onfinish = () => g.remove();
+  }
+});
+document.querySelector(".hero").addEventListener("pointermove", e => {
+  const x = (e.clientX / window.innerWidth - 0.5) * 24, y = (e.clientY / window.innerHeight - 0.5) * 24;
+  document.querySelectorAll(".blob").forEach((b, i) => b.style.translate = (i ? -x : x) + "px " + (i ? -y : y) + "px");
+});
+
+actualizarDashboard(); // primer dibujo del dashboard
+
+</script>
+</body>
+</html>

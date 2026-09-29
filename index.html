@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regador Automático | IrriSmart Automation</title>
+<meta name="description" content="Simulación educativa de un sistema automático de riego con sensor de humedad y Python.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Símbolo SVG de la planta, reutilizado en el inicio y en el dashboard -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <symbol id="planta" viewBox="0 0 200 240">
+  <path d="M60 170h80l-10 60H70z" fill="#4E342E"/><rect x="55" y="162" width="90" height="14" rx="4" fill="#6D4C41"/>
+  <path d="M100 165V80" stroke="#558B2F" stroke-width="6" stroke-linecap="round"/>
+  <path class="hoja izq" d="M100 120C60 120 40 90 38 62c36 0 62 22 62 58z" fill="#7CB342"/>
+  <path class="hoja der" d="M100 100c40 0 60-30 62-58-36 0-62 22-62 58z" fill="#558B2F"/>
+  <path class="hoja" d="M100 82c-18-8-22-30-14-48 18 8 22 30 14 48z" fill="#8BC34A"/>
+ </symbol>
+</svg>
+
+<header class="nav">
+ <div class="wrap">
+  <span class="logo">🌱 IrriSmart</span>
+  <ul class="menu" role="tablist">
+   <li><button data-tab="inicio">Inicio</button></li>
+   <li><button data-tab="filosofia">Filosofía</button></li>
+   <li><button data-tab="soluciones">Soluciones &amp; Python</button></li>
+   <li><button data-tab="contacto">Contacto</button></li>
+  </ul>
+ </div>
+</header>
+
+<main>
+<!-- ============ 1. INICIO ============ -->
+<section id="inicio" class="tab">
+ <div class="hero"><span class="blob b1"></span><span class="blob b2"></span><div id="burbujas"></div><div class="wrap">
+  <div>
+   <p class="marca">IRRISMART AUTOMATION</p>
+   <h1>Riego inteligente para un futuro más sostenible</h1>
+   <p>Sistema automático de riego que utiliza la humedad del suelo para determinar cuándo una planta necesita agua.</p>
+   <button class="btn btn-solido" data-goto="soluciones" data-scroll="simulacion">Ver simulación</button>
+   <button class="btn btn-borde" data-goto="filosofia">Conocer el proyecto</button>
+  </div>
+  <div class="escena" id="escenaHero" title="Haz clic para hacer llover">
+   <svg viewBox="0 0 200 240" role="img" aria-label="Planta con gotas de agua">
+    <rect x="20" y="8" width="160" height="10" rx="5" fill="#8D6E63"/>
+    <circle class="gota" cx="70" cy="30" r="5"/><circle class="gota" cx="100" cy="30" r="5" style="animation-delay:.5s"/><circle class="gota" cx="130" cy="30" r="5" style="animation-delay:.9s"/>
+    <use href="#planta" y="10"/>
+   </svg>
+   <p class="pista-click">👆 Toca la escena para hacer llover</p>
+  </div>
+ </div></div>
+
+ <div class="bloque"><div class="wrap">
+  <div class="rejilla">
+   <article class="tarjeta"><div class="ico">💧</div><h3>Ahorro de agua</h3><p>Riega solo cuando el suelo lo necesita.</p></article>
+   <article class="tarjeta"><div class="ico">🌱</div><h3>Cuidado de plantas</h3><p>Evita el exceso y la falta de agua.</p></article>
+   <article class="tarjeta"><div class="ico">⚙️</div><h3>Automatización</h3><p>Sensores y programación toman la decisión.</p></article>
+  </div>
+ </div></div>
+
+ <div class="bloque gris"><div class="wrap">
+  <h2>El problema</h2>
+  <p class="problema">El riego manual puede provocar exceso o falta de agua. IrriSmart Automation busca automatizar este proceso utilizando sensores y programación.</p>
+ </div></div>
+</section>
+
+<!-- ============ 2. FILOSOFÍA ============ -->
+<section id="filosofia" class="tab">
+ <div class="bloque"><div class="wrap">
+  <h2>Quiénes somos</h2>
+  <div class="rejilla">
+   <article class="tarjeta"><h3>🎯 Misión</h3><p>Desarrollar soluciones tecnológicas que permitan automatizar el riego de plantas, promoviendo un uso más eficiente del agua y el cuidado responsable de los recursos naturales.</p></article>
+   <article class="tarjeta"><h3>🔭 Visión</h3><p>Ser un proyecto educativo que demuestre cómo la tecnología y la programación pueden utilizarse para crear soluciones sostenibles para la agricultura y el hogar.</p></article>
+  </div>
+  <h3 style="margin-top:2rem">Valores</h3>
+  <ul class="valores"><li>Innovación</li><li>Responsabilidad</li><li>Sostenibilidad</li><li>Trabajo en equipo</li><li>Conciencia ambiental</li></ul>
+ </div></div>
+
+ <div class="bloque gris"><div class="wrap">
+  <h2>Impacto sociocultural</h2>
+  <p class="intro">Un sistema de riego automático puede aportar a la comunidad de varias maneras:</p>
+  <div class="rejilla">
+   <article class="tarjeta"><h3>Menos desperdicio</h3><p>Al regar solo cuando la humedad es baja, se evita gastar agua de más.</p></article>
+   <article class="tarjeta"><h3>Cuidado más fácil</h3><p>Ayuda a mantener las plantas aunque no se pueda regar todos los días.</p></article>
+   <article class="tarjeta"><h3>Automatización agrícola</h3><p>Introduce a estudiantes en ideas que también se usan en la agricultura.</p></article>
+   <article class="tarjeta"><h3>Tecnología cotidiana</h3><p>Muestra cómo la programación puede resolver problemas del día a día.</p></article>
+  </div>
+ </div></div>
+
+ <div class="bloque"><div class="wrap equipo">
+  <h2>Nuestro equipo</h2>
+  <p class="intro">Haz clic sobre un nombre o rol para editarlo.</p>
+  <div class="rejilla">
+   <article class="tarjeta"><div class="avatar">👩‍🔬</div><h3 contenteditable="true">Nombre Integrante 1</h3><p contenteditable="true">Rol: Programación</p></article>
+   <article class="tarjeta"><div class="avatar">👨‍💻</div><h3 contenteditable="true">Nombre Integrante 2</h3><p contenteditable="true">Rol: Electrónica</p></article>
+   <article class="tarjeta"><div class="avatar">🧑‍🌾</div><h3 contenteditable="true">Nombre Integrante 3</h3><p contenteditable="true">Rol: Investigación</p></article>
+   <article class="tarjeta"><div class="avatar">🧑‍🎨</div><h3 contenteditable="true">Nombre Integrante 4</h3><p contenteditable="true">Rol: Diseño</p></article>
+  </div>
+ </div></div>
+</section>
+
+<!-- ============ 3. SOLUCIONES & PYTHON ============ -->
+<section id="soluciones" class="tab">
+ <div class="bloque"><div class="wrap">
+  <h2>Cómo funciona</h2>
+  <ol class="pasos">
+   <li>El <b>sensor de humedad</b> mide la humedad del suelo.</li>
+   <li><b>Python</b> recibe y procesa el valor.</li>
+   <li>El sistema compara la humedad con un <b>nivel mínimo</b> (umbral).</li>
+   <li>Si la humedad es demasiado baja, se <b>activa el riego</b>.</li>
+   <li>Si la humedad es suficiente, la bomba <b>permanece apagada</b>.</li>
+  </ol>
+  <h3 style="margin:2rem 0 .8rem">Componentes</h3>
+  <ul class="valores"><li>Sensor de humedad</li><li>Bomba de agua</li><li>Electroválvula</li><li>Depósito de agua</li><li>Manguera/gotero</li><li>Controlador</li><li>Planta</li></ul>
+  <div class="scroll" style="margin-top:1.4rem"><table>
+   <thead><tr><th>COMPONENTE</th><th>FUNCIÓN</th></tr></thead>
+   <tbody>
+    <tr><td>Sensor de humedad</td><td>Detecta la humedad del suelo.</td></tr>
+    <tr><td>Bomba de agua</td><td>Transporta el agua hacia la planta.</td></tr>
+    <tr><td>Electroválvula</td><td>Controla el paso del agua.</td></tr>
+    <tr><td>Programador</td><td>Define cuándo debe funcionar el sistema.</td></tr>
+    <tr><td>Controlador</td><td>Procesa los datos y controla el sistema.</td></tr>
+   </tbody></table></div>
+ </div></div>
+
+ <div class="bloque gris" id="simulacion"><div class="wrap">
+  <h2>Dashboard interactivo</h2>
+  <div class="aviso"><b>Esto es una simulación web.</b> Los valores los mueves tú con los controles; no provienen de un sensor real. El <b>prototipo físico</b> es un montaje aparte con componentes electrónicos.</div>
+  <div class="dash">
+   <div class="panel">
+    <p class="dato">Humedad del suelo: <strong id="valHumedad">45 %</strong></p>
+    <p class="dato">Umbral de riego: <strong id="valUmbral">40 %</strong></p>
+    <span id="estado" class="estado off" role="status">🔴 RIEGO DESACTIVADO</span>
+    <div class="medidores">
+     <svg class="gauge" viewBox="0 0 120 120" role="img" aria-label="Medidor de humedad">
+      <circle class="pista" cx="60" cy="60" r="50"/>
+      <circle id="anillo" class="anillo" cx="60" cy="60" r="50" transform="rotate(-90 60 60)" stroke-dasharray="314.16"/>
+      <line id="marcaUmbral" x1="60" y1="2" x2="60" y2="18"/>
+      <text id="gaugeTxt" x="60" y="68" text-anchor="middle">45%</text>
+     </svg>
+     <div class="historia"><small>Historial de humedad (línea punteada = umbral)</small>
+      <svg viewBox="0 0 200 50" preserveAspectRatio="none" aria-hidden="true"><line id="lineaUmbral" x1="0" x2="200"/><polyline id="lineaHist" points=""/></svg>
+     </div>
+    </div>
+    <div class="presets"><button class="chip" data-h="10">🏜️ Sequía</button><button class="chip" data-h="50">🌤️ Normal</button><button class="chip" data-h="90">🌧️ Lluvia</button></div>
+    <label for="humedad">Humedad del suelo</label>
+    <input type="range" id="humedad" min="0" max="100" value="45">
+    <label for="umbral">Umbral de riego</label>
+    <input type="range" id="umbral" min="0" max="100" value="40">
+    <p class="reglaTxt">SI humedad &lt; umbral → activar riego<br>SI humedad &gt;= umbral → desactivar riego</p>
+    <p style="margin-top:14px"><button class="btn btn-tierra" id="btnSimular">Simular riego</button></p>
+   </div>
+   <div class="panel simbox">
+    <svg id="escenaSim" viewBox="0 0 200 240" role="img" aria-label="Planta y flujo de agua simulado">
+     <rect class="tubo" x="20" y="6" width="100" height="10" rx="5"/><rect class="tubo" x="112" y="6" width="10" height="20" rx="4"/>
+     <line class="agua" x1="117" y1="26" x2="117" y2="100"/>
+     <circle class="gota" cx="117" cy="30" r="5"/><circle class="gota" cx="117" cy="30" r="5"/><circle class="gota" cx="117" cy="30" r="5"/>
+     <g id="plantaSim"><use href="#planta" y="10"/></g>
+    </svg>
+   </div>
+  </div>
+
+  <h3 style="margin:2rem 0 .8rem">Programación horaria (editable)</h3>
+  <div class="scroll"><table>
+   <thead><tr><th>Hora</th><th>Estado</th></tr></thead>
+   <tbody id="horarios">
+    <tr><td><input type="time" value="07:00" aria-label="Hora 1"></td><td><input type="text" value="Riego" aria-label="Estado 1"></td></tr>
+    <tr><td><input type="time" value="12:00" aria-label="Hora 2"></td><td><input type="text" value="Revisión" aria-label="Estado 2"></td></tr>
+    <tr><td><input type="time" value="18:00" aria-label="Hora 3"></td><td><input type="text" value="Riego" aria-label="Estado 3"></td></tr>
+   </tbody></table></div>
+ </div></div>
+
+ <div class="bloque"><div class="wrap">
+  <h2>Código Python</h2>
+  <p class="intro">Programación orientada a objetos: cada parte del sistema es una clase. La versión completa (con Flask) está en <code>app.py</code>.</p>
+<pre><code><span class="kw">class</span> SensorHumedad:
+    <span class="cm">"""Simula el sensor: devuelve la humedad (0-100 %)."""</span>
+    <span class="kw">def</span> __init__(self, humedad_inicial=50):
+        self.humedad = humedad_inicial
+    <span class="kw">def</span> leer(self):
+        <span class="kw">return</span> self.humedad
+
+<span class="kw">class</span> ElectroValvula:
+    <span class="cm">"""Deja pasar o corta el agua."""</span>
+    <span class="kw">def</span> __init__(self):
+        self.abierta = False
+    <span class="kw">def</span> abrir(self):  self.abierta = True
+    <span class="kw">def</span> cerrar(self): self.abierta = False
+
+<span class="kw">class</span> ProgramadorHorario:
+    <span class="cm">"""Guarda las horas y la acción de cada una."""</span>
+    <span class="kw">def</span> __init__(self):
+        self.horarios = {"07:00": "Riego", "12:00": "Revision", "18:00": "Riego"}
+    <span class="kw">def</span> accion_a(self, hora):
+        <span class="kw">return</span> self.horarios.get(hora, "Sin accion")
+
+<span class="kw">class</span> SistemaRiego:
+    <span class="cm">"""Controlador: compara humedad y umbral y decide."""</span>
+    <span class="kw">def</span> __init__(self, sensor, valvula, programador, umbral=40):
+        self.sensor, self.valvula = sensor, valvula
+        self.programador, self.umbral = programador, umbral
+    <span class="kw">def</span> evaluar(self):
+        humedad = self.sensor.leer()
+        <span class="kw">if</span> humedad &lt; self.umbral:   <span class="cm"># suelo seco</span>
+            self.valvula.abrir()
+        <span class="kw">else</span>:                       <span class="cm"># humedad suficiente</span>
+            self.valvula.cerrar()
+        <span class="kw">return</span> {"humedad": humedad, "umbral": self.umbral,
+                "riego_activo": self.valvula.abierta}</code></pre>
+  <div class="rejilla" style="margin-top:1.4rem">
+   <article class="tarjeta"><h3>SensorHumedad</h3><p>Entrega el valor de humedad. Aquí es simulado.</p></article>
+   <article class="tarjeta"><h3>ElectroValvula</h3><p>Guarda si el agua puede pasar (abierta) o no (cerrada).</p></article>
+   <article class="tarjeta"><h3>ProgramadorHorario</h3><p>Define las horas de riego y revisión.</p></article>
+   <article class="tarjeta"><h3>SistemaRiego</h3><p>Es el controlador: aplica la regla humedad &lt; umbral.</p></article>
+  </div>
+ </div></div>
+</section>
+
+<!-- ============ 4. CONTACTO ============ -->
+<section id="contacto" class="tab">
+ <div class="bloque"><div class="wrap">
+  <h2>Contacto</h2>
+  <form id="formContacto">
+   <label for="nombre">Nombre</label><input id="nombre" name="nombre" required>
+   <label for="correo">Correo</label><input id="correo" name="correo" type="email" required>
+   <label for="mensaje">Mensaje</label><textarea id="mensaje" name="mensaje" rows="4" required></textarea>
+   <button class="btn btn-solido" type="submit">Enviar mensaje</button>
+   <p id="msgForm" role="status"></p>
+  </form>
+ </div></div>
+
+ <div class="bloque gris"><div class="wrap">
+  <h2>Preguntas frecuentes</h2>
+  <details><summary>¿Qué problema busca resolver IrriSmart?</summary><p>El riego manual puede dar demasiada o muy poca agua. IrriSmart automatiza la decisión usando un sensor y programación.</p></details>
+  <details><summary>¿Cómo detecta cuándo una planta necesita agua?</summary><p>Mide la humedad del suelo y la compara con un umbral mínimo. Si está por debajo, indica que hay que regar.</p></details>
+  <details><summary>¿Qué función cumple el sensor?</summary><p>Detecta la humedad del suelo y entrega ese dato al controlador.</p></details>
+  <details><summary>¿Qué hace Python?</summary><p>Procesa el valor del sensor, aplica la regla de comparación y decide si abrir o cerrar la electroválvula.</p></details>
+  <details><summary>¿Cómo ayuda a ahorrar agua?</summary><p>Al regar solo cuando el suelo está seco, evita riegos innecesarios. La página lo muestra como simulación; no presenta mediciones reales de ahorro.</p></details>
+ </div></div>
+
+ <div class="gracias"><h2>Gracias por visitar nuestro proyecto de Feria Científica.</h2></div>
+</section>
+</main>
+
+<footer>IrriSmart Automation · Proyecto educativo · Simulación web</footer>
+<script src="script.js"></script>
+</body>
+</html>
